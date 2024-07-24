@@ -1,84 +1,28 @@
-name: Update Daily Map
+name: Daily Challenge Update
 
 on:
   schedule:
-    - cron: '0 3 * * *'  # Ejecutar a las 3:00 AM UTC todos los días
-  workflow_dispatch:  # Permitir ejecución manual desde la pestaña de acciones
+    - cron: '0 3 * * *'  # Cada día a las 3:00 AM
 
 jobs:
-  update-map:
+  update-challenge:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests
+      - name: Install dependencies
+        run: |
+          pip install requests
 
-    - name: Run update script
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        python -c "
-        import requests
-        import random
-        import os
-        from requests.auth import HTTPBasicAuth
-        import base64
-        import json
-
-        map_list_url = 'https://raw.githubusercontent.com/NyxGleam/BeatsGameSongsList/main/Challengesongs.json'
-        update_map_url = 'https://api.github.com/repos/NyxGleam/BeatsGameSongsList/contents/CurrentDailyMap.json'
-        github_token = os.getenv('GITHUB_TOKEN')
-
-        def fetch_map_list():
-            response = requests.get(map_list_url)
-            if response.status_code == 200:
-                data = response.json()
-                if 'maps' in data:
-                    return data['maps']
-                else:
-                    raise KeyError('maps key not found in JSON')
-            else:
-                raise Exception(f'Error fetching map list: {response.status_code}')
-
-        def update_daily_map(new_map):
-            response = requests.get(update_map_url, auth=HTTPBasicAuth('token', github_token))
-            if response.status_code == 200:
-                file_data = response.json()
-                sha = file_data['sha']
-                new_content_json = json.dumps({'dailyMap': new_map})
-                content = base64.b64encode(new_content_json.encode()).decode()
-                headers = {
-                    'Authorization': f'token {github_token}',
-                    'Content-Type': 'application/json'
-                }
-                new_content = {
-                    'message': 'Update daily challenge map',
-                    'content': content,
-                    'sha': sha
-                }
-                response = requests.put(update_map_url, json=new_content, headers=headers, auth=HTTPBasicAuth('token', github_token))
-                if response.status_code == 200:
-                    print('CurrentDailyMap.json updated successfully')
-                else:
-                    raise Exception(f'Error updating CurrentDailyMap.json: {response.status_code} {response.text}')
-            else:
-                raise Exception(f'Error fetching file metadata: {response.status_code} {response.text}')
-
-        try:
-            map_list = fetch_map_list()
-            daily_map = random.choice(map_list)
-            update_daily_map(daily_map)
-            print(f'Daily challenge set to: {daily_map}')
-        except Exception as e:
-            print(f'Error: {e}')
-        "
+      - name: Run update script
+        env:
+          MY_TOKEN: ${{ secrets.MY_TOKEN }}
+        run: |
+          python update_daily_challenge.py
