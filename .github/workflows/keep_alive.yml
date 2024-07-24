@@ -1,14 +1,13 @@
-name: Keep Alive
+name: Keep Repl Active
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Cada 5 minutos
+    - cron: '*/5 * * * *'
 
 jobs:
   keep-alive:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Send a keep-alive request
+      - name: Send request to Repl
         run: |
-          curl -sS https://019a6fc8-201b-421c-af04-56a47e118d8b-00-y9lb426rwlg1.picard.replit.dev
+          curl -X GET 'https://019a6fc8-201b-421c-af04-56a47e118d8b-00-y9lb426rwlg1.picard.replit.dev/update_daily_challenge'
